@@ -1,0 +1,11 @@
+:root{ --maxw:900px; font-family: Arial, Helvetica, sans-serif; }
+body{ display:flex; align-items:flex-start; justify-content:center; padding:24px; }
+main{ max-width:var(--maxw); width:100%; }
+h1{ margin:0 0 12px 0 }
+.controls{ display:flex; gap:16px; flex-wrap:wrap; margin-bottom:12px }
+label{ display:flex; flex-direction:column; font-weight:600 }
+select{ min-width:260px; padding:6px }
+table{ border-collapse:collapse; width:100%; }
+th, td{ text-align:left; padding:6px 8px; border:1px solid #ddd }
+th{ background:#f5f5f5; width:240px }
+.hint{ margin-top:12px; color:#666 }
