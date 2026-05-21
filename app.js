@@ -56,23 +56,6 @@ function buildLookup(rows){
   return {headers, data};
 }
 
-function populateTypeDropdown(data){
-  const types = Array.from(new Set(data.map(r=>r.prgrm_type))).filter(Boolean).sort();
-  const sel = document.getElementById('prgrm_type');
-  types.forEach(t=>{
-    const o = document.createElement('option'); o.value = t; o.textContent = t; sel.appendChild(o);
-  });
-}
-
-function populateProgramDropdown(data, type){
-  const sel = document.getElementById('prgrm_name');
-  sel.innerHTML = '<option value="">-- select program --</option>';
-  const filtered = data.filter(r=>r.prgrm_type === type).map(r=>r.prgrm_name).filter(Boolean).sort();
-  filtered.forEach(n=>{
-    const o = document.createElement('option'); o.value = n; o.textContent = n; sel.appendChild(o);
-  });
-}
-
 function populateDatalist(id, items){
   const dl = document.getElementById(id);
   dl.innerHTML = '';
@@ -139,7 +122,7 @@ function showDetails(rows, headers){
 }
 
 async function init(){
-  const rows = await loadCSV('data/checklist.csv');
+  const rows = await loadCSV('./data/checklist.csv');
   const {headers, data} = buildLookup(rows);
   // populate datalists
   const majors = data.filter(r=>r.prgrm_type === 'Major').map(r=>r.prgrm_name);
