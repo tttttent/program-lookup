@@ -73,32 +73,116 @@ function populateProgramDropdown(data, type){
   });
 }
 
-function showDetails(row, headers){
+function populateDatalist(id, items){
+  const dl = document.getElementById(id);
+  dl.innerHTML = '';
+  const uniq = Array.from(new Set(items)).filter(Boolean).sort();
+  uniq.forEach(v=>{ const opt = document.createElement('option'); opt.value = v; dl.appendChild(opt); });
+}
+
+function extractPdfTitle(url){
+  // extract filename: https://...files/2023-05/2023-24-example-title-merged.pdf
+  const match = url.match(/\/([^/]+)\.pdf$/i);
+  if(!match){ return 'PDF'; }
+  let filename = match[1];
+  // remove date prefix like "2023-24-"
+  filename = filename.replace(/^\d{4}-\d{2}-/, '');
+  // remove "-merged" suffix
+  filename = filename.replace(/-merged$/, '');
+  // replace hyphens with spaces and capitalize
+  const title = filename.split('-').map(w=>w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  return title;
+}
+
+function renderCell(headerName, value){
+  const cell = document.createElement('td');
+  if(!value){ return cell; }
+  
+  const isUrlField = /^(2023|2024|2025|2026)$/.test(headerName);
+  if(isUrlField && value.includes('http')){
+    // split by ' ; ' for multiple URLs
+    const urls = value.split(/\s*;\s*/).filter(u=>u.trim());
+    urls.forEach((url, i) => {
+      const a = document.createElement('a');
+      const trimmedUrl = url.trim();
+      a.href = trimmedUrl;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = extractPdfTitle(trimmedUrl);
+      cell.appendChild(a);
+      if(i < urls.length - 1){ cell.appendChild(document.createElement('br')); }
+    });
+  } else {
+    cell.textContent = value;
+  }
+  return cell;
+}
+
+function showDetails(rows, headers){
   const tbody = document.querySelector('#details tbody'); tbody.innerHTML = '';
-  if(!row){ tbody.innerHTML = '<tr><td>No selection</td></tr>'; return; }
-  headers.forEach(h=>{
-    const tr = document.createElement('tr');
-    const th = document.createElement('th'); th.textContent = h; const td = document.createElement('td'); td.textContent = row[h] || '';
-    tr.appendChild(th); tr.appendChild(td); tbody.appendChild(tr);
+  if(!rows || rows.length === 0){ tbody.innerHTML = '<tr><td>No matches</td></tr>'; return; }
+
+  rows.forEach((row, idx) => {
+    const titleTr = document.createElement('tr');
+    const titleTh = document.createElement('th'); titleTh.colSpan = 2; titleTh.textContent = `${row.prgrm_type} — ${row.prgrm_name}`;
+    titleTr.appendChild(titleTh); tbody.appendChild(titleTr);
+
+    headers.forEach(h=>{
+      const tr = document.createElement('tr');
+      const th = document.createElement('th'); th.textContent = h;
+      const td = renderCell(h, row[h] || '');
+      tr.appendChild(th); tr.appendChild(td); tbody.appendChild(tr);
+    });
+
+    if(idx < rows.length - 1){ const sep = document.createElement('tr'); const empty = document.createElement('td'); empty.colSpan = 2; empty.style.height = '8px'; sep.appendChild(empty); tbody.appendChild(sep); }
   });
 }
 
 async function init(){
   const rows = await loadCSV('data/checklist.csv');
   const {headers, data} = buildLookup(rows);
-  populateTypeDropdown(data);
+  // populate datalists
+  const majors = data.filter(r=>r.prgrm_type === 'Major').map(r=>r.prgrm_name);
+  const minors = data.filter(r=>r.prgrm_type === 'Minor').map(r=>r.prgrm_name);
+  const cons = data.filter(r=>r.prgrm_type === 'Concentration').map(r=>r.prgrm_name);
 
-  const typeSel = document.getElementById('prgrm_type');
-  const nameSel = document.getElementById('prgrm_name');
+  populateDatalist('major_list', majors);
+  // keep minor and concentration lists strictly separate
+  populateDatalist('minor_list', minors);
+  populateDatalist('con_list', cons);
 
-  typeSel.addEventListener('change', ()=>{
-    const t = typeSel.value; populateProgramDropdown(data, t); showDetails(null, headers);
+  const majorInput = document.getElementById('major_input');
+  const minorInput = document.getElementById('minor_input');
+  const conInput = document.getElementById('con_input');
+  const searchBtn = document.getElementById('search_btn');
+  const clearBtn = document.getElementById('clear_btn');
+
+  function doSearch(){
+    const results = [];
+    const seen = new Set();
+    const m = (majorInput.value || '').trim();
+    const mi = (minorInput.value || '').trim();
+    const c = (conInput.value || '').trim();
+
+    if(m){ const row = data.find(r=>r.prgrm_type === 'Major' && r.prgrm_name === m); if(row && !seen.has(row.prgrm_name)){ results.push(row); seen.add(row.prgrm_name); } }
+    if(mi){ const row = data.find(r=>r.prgrm_type === 'Minor' && r.prgrm_name === mi); if(row && !seen.has(row.prgrm_name)){ results.push(row); seen.add(row.prgrm_name); } }
+    if(c){ const row = data.find(r=>r.prgrm_type === 'Concentration' && r.prgrm_name === c); if(row && !seen.has(row.prgrm_name)){ results.push(row); seen.add(row.prgrm_name); } }
+
+    showDetails(results, headers);
+  }
+
+  searchBtn.addEventListener('click', doSearch);
+  clearBtn.addEventListener('click', ()=>{ majorInput.value = ''; minorInput.value = ''; conInput.value = ''; showDetails([], headers); });
+
+
+  [majorInput, minorInput, conInput].forEach(inp => {
+    inp.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); doSearch(); } });
+    inp.addEventListener('focus', ()=>{ inp.value = ''; });
+    inp.addEventListener('click', ()=>{ inp.value = ''; });
   });
 
-  nameSel.addEventListener('change', ()=>{
-    const name = nameSel.value; const row = data.find(r=>r.prgrm_name === name && r.prgrm_type === typeSel.value);
-    showDetails(row, headers);
-  });
+  // initial empty state
+  showDetails([], headers);
 }
 
 init().catch(err=>{

@@ -11,13 +11,25 @@
       <h1>Program Requirements Lookup</h1>
 
       <div class="controls">
-        <label>Program Type
-          <select id="prgrm_type"><option value="">-- select type --</option></select>
+        <label>Major
+          <input id="major_input" list="major_list" placeholder="Start typing to search...">
+          <datalist id="major_list"></datalist>
         </label>
 
-        <label>Program Name
-          <select id="prgrm_name"><option value="">-- select program --</option></select>
+        <label>Minor
+          <input id="minor_input" list="minor_list" placeholder="Start typing to search...">
+          <datalist id="minor_list"></datalist>
         </label>
+
+        <label>Concentration
+          <input id="con_input" list="con_list" placeholder="Start typing to search...">
+          <datalist id="con_list"></datalist>
+        </label>
+
+        <div class="buttons">
+          <button id="search_btn">Search</button>
+          <button id="clear_btn">Clear</button>
+        </div>
       </div>
 
       <section id="result">
