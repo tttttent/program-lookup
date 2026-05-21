@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Program Requirements Lookup</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main>
+      <h1>Program Requirements Lookup</h1>
+
+      <div class="controls">
+        <label>Program Type
+          <select id="prgrm_type"><option value="">-- select type --</option></select>
+        </label>
+
+        <label>Program Name
+          <select id="prgrm_name"><option value="">-- select program --</option></select>
+        </label>
+      </div>
+
+      <section id="result">
+        <h2>Details</h2>
+        <table id="details">
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <p class="hint">Tip: open this folder in VS Code and launch a simple HTTP server (or open <code>index.html</code> directly).</p>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
